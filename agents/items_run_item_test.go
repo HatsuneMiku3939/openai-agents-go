@@ -44,6 +44,21 @@ func TestTResponseInputItemFromToolCallItemType_WebSearchCallPreservesQueriesAnd
 	require.False(t, strings.Contains(string(encoded), `"query":`), string(encoded))
 }
 
+func TestTResponseInputItemFromToolCallItemType_WebSearchCallPreservesFindInPage(t *testing.T) {
+	input := ResponseFunctionWebSearch(responses.ResponseFunctionWebSearch{
+		ID: "ws_1",
+		Action: responses.ResponseFunctionWebSearchActionUnion{
+			Type: "find_in_page", Pattern: "needle", URL: "https://example.com/page",
+		},
+	})
+
+	out := TResponseInputItemFromToolCallItemType(input)
+	find := out.OfWebSearchCall.Action.OfFind
+	require.NotNil(t, find)
+	require.Equal(t, "needle", find.Pattern)
+	require.Equal(t, "https://example.com/page", find.URL)
+}
+
 func TestTResponseInputItemFromToolCallItemType_WebSearchCall(t *testing.T) {
 	input := ResponseFunctionWebSearch(responses.ResponseFunctionWebSearch{
 		ID: "ws_1",

@@ -446,7 +446,7 @@ func ResponseFunctionWebSearchActionUnionToParam(
 				Type: constant.ValueOf[constant.OpenPage](),
 			},
 		}
-	case "find":
+	case "find_in_page":
 		return responses.ResponseFunctionWebSearchActionUnionParam{
 			OfFind: &responses.ResponseFunctionWebSearchActionFindParam{
 				Pattern: input.Pattern,
