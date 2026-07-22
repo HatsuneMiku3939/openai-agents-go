@@ -263,7 +263,7 @@ func ResponseOutputItemUnionFromResponseOutputMessage(
 	return responses.ResponseOutputItemUnion{
 		ID:      input.ID,
 		Content: input.Content,
-		Role:    input.Role,
+		Role:    string(input.Role),
 		Status:  string(input.Status),
 		Type:    "message",
 	}
@@ -277,7 +277,7 @@ func ResponseInputItemUnionParamFromResponseOutputItemUnion(
 		return ResponseInputItemUnionParamFromResponseOutputMessage(responses.ResponseOutputMessage{
 			ID:      input.ID,
 			Content: input.Content,
-			Role:    input.Role,
+			Role:    constant.Assistant(input.Role),
 			Status:  responses.ResponseOutputMessageStatus(input.Status),
 			Type:    constant.ValueOf[constant.Message](),
 		})
@@ -291,7 +291,7 @@ func ResponseInputItemUnionParamFromResponseOutputItemUnion(
 		})
 	case "function_call":
 		return ResponseInputItemUnionParamFromResponseFunctionToolCall(responses.ResponseFunctionToolCall{
-			Arguments: input.Arguments,
+			Arguments: input.Arguments.OfString,
 			CallID:    input.CallID,
 			Name:      input.Name,
 			Type:      constant.ValueOf[constant.FunctionCall](),
@@ -422,7 +422,7 @@ func ResponseFunctionWebSearchActionUnionToParam(
 	case "search":
 		return responses.ResponseFunctionWebSearchActionUnionParam{
 			OfSearch: &responses.ResponseFunctionWebSearchActionSearchParam{
-				Query: input.Query,
+				Query: param.NewOpt(input.Query),
 				Type:  constant.ValueOf[constant.Search](),
 			},
 		}
@@ -769,7 +769,7 @@ func ResponseOutputMessageFromResponseOutputItemUnion(
 	return responses.ResponseOutputMessage{
 		ID:      input.ID,
 		Content: input.Content,
-		Role:    input.Role,
+		Role:    constant.Assistant(input.Role),
 		Status:  responses.ResponseOutputMessageStatus(input.Status),
 		Type:    constant.ValueOf[constant.Message](),
 	}

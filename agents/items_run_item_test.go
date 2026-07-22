@@ -34,6 +34,6 @@ func TestTResponseInputItemFromToolCallItemType_WebSearchCall(t *testing.T) {
 		require.NotNil(t, out.OfWebSearchCall)
 		require.Equal(t, "ws_1", out.OfWebSearchCall.ID)
 		require.NotNil(t, out.OfWebSearchCall.Action.OfSearch)
-		require.Equal(t, "hello", out.OfWebSearchCall.Action.OfSearch.Query)
+		require.Equal(t, "hello", out.OfWebSearchCall.Action.OfSearch.Query.Or(""))
 	})
 }

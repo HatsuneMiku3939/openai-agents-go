@@ -410,7 +410,7 @@ func (runImpl) ProcessModelResponse(
 			output := responses.ResponseOutputMessage{
 				ID:      outputUnion.ID,
 				Content: outputUnion.Content,
-				Role:    outputUnion.Role,
+				Role:    constant.Assistant(outputUnion.Role),
 				Status:  responses.ResponseOutputMessageStatus(outputUnion.Status),
 				Type:    constant.ValueOf[constant.Message](),
 			}
@@ -485,7 +485,7 @@ func (runImpl) ProcessModelResponse(
 		case "mcp_approval_request":
 			output := responses.ResponseOutputItemMcpApprovalRequest{
 				ID:          outputUnion.ID,
-				Arguments:   outputUnion.Arguments,
+				Arguments:   outputUnion.Arguments.OfString,
 				Name:        outputUnion.Name,
 				ServerLabel: outputUnion.ServerLabel,
 				Type:        constant.ValueOf[constant.McpApprovalRequest](),
@@ -514,7 +514,7 @@ func (runImpl) ProcessModelResponse(
 			output := responses.ResponseOutputItemMcpListTools{
 				ID:          outputUnion.ID,
 				ServerLabel: outputUnion.ServerLabel,
-				Tools:       outputUnion.Tools,
+				Tools:       outputUnion.Tools.OfResponseOutputItemMcpListToolsTools,
 				Type:        constant.ValueOf[constant.McpListTools](),
 				Error:       outputUnion.Error,
 			}
@@ -526,7 +526,7 @@ func (runImpl) ProcessModelResponse(
 		case "mcp_call":
 			output := responses.ResponseOutputItemMcpCall{
 				ID:          outputUnion.ID,
-				Arguments:   outputUnion.Arguments,
+				Arguments:   outputUnion.Arguments.OfString,
 				Name:        outputUnion.Name,
 				ServerLabel: outputUnion.ServerLabel,
 				Type:        constant.ValueOf[constant.McpCall](),
@@ -591,7 +591,7 @@ func (runImpl) ProcessModelResponse(
 			})
 		case "function_call":
 			output := responses.ResponseFunctionToolCall{
-				Arguments: outputUnion.Arguments,
+				Arguments: outputUnion.Arguments.OfString,
 				CallID:    outputUnion.CallID,
 				Name:      outputUnion.Name,
 				Type:      constant.ValueOf[constant.FunctionCall](),
