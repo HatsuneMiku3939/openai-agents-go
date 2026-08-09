@@ -681,9 +681,8 @@ func (runImpl) ProcessModelResponse(
 
 func responseOutputItemStringArguments(output responses.ResponseOutputItemUnion) (string, error) {
 	arguments := output.Arguments
-	_, objectArguments := arguments.OfResponseToolSearchCallArguments.(map[string]any)
 	if arguments.JSON.OfResponseToolSearchCallArguments.Valid() && !arguments.JSON.OfString.Valid() ||
-		objectArguments {
+		arguments.OfResponseToolSearchCallArguments != nil && !arguments.JSON.OfString.Valid() {
 		return "", ModelBehaviorErrorf("%s arguments must be a string", output.Type)
 	}
 	return arguments.OfString, nil

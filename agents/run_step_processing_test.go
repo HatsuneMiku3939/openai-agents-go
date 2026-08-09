@@ -156,6 +156,43 @@ func TestProcessModelResponseRejectsNonStringToolFields(t *testing.T) {
 	}
 }
 
+func TestProcessModelResponseRejectsDirectNonStringArguments(t *testing.T) {
+	tests := []struct {
+		name      string
+		arguments any
+	}{
+		{name: "map", arguments: map[string]string{"city": "Tokyo"}},
+		{name: "struct", arguments: struct{ City string }{City: "Tokyo"}},
+		{name: "slice", arguments: []string{"Tokyo"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			agent := &Agent{Name: "test", Tools: []Tool{getFunctionTool("test", "")}}
+			allTools, err := agent.GetAllTools(t.Context())
+			require.NoError(t, err)
+			output := TResponseOutputItem{
+				ID:     "call",
+				Type:   "function_call",
+				CallID: "call",
+				Name:   "test",
+				Arguments: responses.ResponseOutputItemUnionArguments{
+					OfResponseToolSearchCallArguments: tt.arguments,
+				},
+			}
+
+			result, err := RunImpl().ProcessModelResponse(
+				t.Context(), agent, allTools,
+				ModelResponse{Output: []TResponseOutputItem{output}, Usage: usage.NewUsage()}, nil,
+			)
+
+			require.Nil(t, result)
+			assert.ErrorAs(t, err, &ModelBehaviorError{})
+			assert.ErrorContains(t, err, "function_call arguments must be a string")
+		})
+	}
+}
+
 func TestSingleToolCall(t *testing.T) {
 	agent := &Agent{
 		Name: "test",
