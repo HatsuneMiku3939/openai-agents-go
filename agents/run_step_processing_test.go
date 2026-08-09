@@ -104,6 +104,58 @@ func TestProcessModelResponsePreservesMCPSubunions(t *testing.T) {
 	require.Equal(t, `{"city":"Tokyo"}`, mcpCall.Arguments)
 }
 
+func TestProcessModelResponseRejectsNonStringToolFields(t *testing.T) {
+	tests := []struct {
+		name        string
+		rawItem     string
+		agent       *Agent
+		errorSubstr string
+	}{
+		{
+			name:        "function call arguments",
+			rawItem:     `{"id":"call","type":"function_call","arguments":{"city":"Tokyo"},"call_id":"call","name":"test","status":"completed"}`,
+			agent:       &Agent{Name: "test", Tools: []Tool{getFunctionTool("test", "")}},
+			errorSubstr: "function_call arguments must be a string",
+		},
+		{
+			name:        "MCP approval request arguments",
+			rawItem:     `{"id":"approval","type":"mcp_approval_request","arguments":{"city":"Tokyo"},"name":"weather","server_label":"server"}`,
+			agent:       &Agent{Name: "test", Tools: []Tool{HostedMCPTool{ToolConfig: responses.ToolMcpParam{ServerLabel: "server"}}}},
+			errorSubstr: "mcp_approval_request arguments must be a string",
+		},
+		{
+			name:        "MCP call arguments",
+			rawItem:     `{"id":"call","type":"mcp_call","arguments":{"city":"Tokyo"},"name":"weather","server_label":"server","output":"sunny","status":"completed"}`,
+			agent:       &Agent{Name: "test"},
+			errorSubstr: "mcp_call arguments must be a string",
+		},
+		{
+			name:        "MCP call output",
+			rawItem:     `{"id":"call","type":"mcp_call","arguments":"{}","name":"weather","server_label":"server","output":[{"type":"output_text","text":"sunny"}],"status":"completed"}`,
+			agent:       &Agent{Name: "test"},
+			errorSubstr: "mcp_call output must be a string",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var output TResponseOutputItem
+			require.NoError(t, json.Unmarshal([]byte(tt.rawItem), &output))
+			allTools, err := tt.agent.GetAllTools(t.Context())
+			require.NoError(t, err)
+
+			result, err := RunImpl().ProcessModelResponse(
+				t.Context(), tt.agent, allTools,
+				ModelResponse{Output: []TResponseOutputItem{output}, Usage: usage.NewUsage()}, nil,
+			)
+
+			require.Nil(t, result)
+			assert.ErrorAs(t, err, &ModelBehaviorError{})
+			assert.ErrorContains(t, err, tt.errorSubstr)
+		})
+	}
+}
+
 func TestSingleToolCall(t *testing.T) {
 	agent := &Agent{
 		Name: "test",
